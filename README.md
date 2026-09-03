@@ -17,6 +17,9 @@ ZenTerm injects into every pane along with a per-pane token (`$ZEN_PANE`):
 - On `VimEnter`/`VimResume` the plugin tells ZenTerm this pane is running Neovim
   (and clears it on `VimLeave`/`VimSuspend`), so ZenTerm's key guard lets
   `Ctrl-hjkl` reach Neovim instead of moving pane focus.
+- That claim is held on a single open connection. ZenTerm clears the pane's flag
+  when the connection closes, so a crash or a `kill -9` releases `Ctrl-hjkl` back
+  to pane nav the moment Neovim dies, with no autocmd needed.
 - When Neovim is at its edge split and can't move further, it asks ZenTerm to
   move pane focus in that direction.
 
@@ -26,7 +29,8 @@ portable.
 
 ## Requirements
 
-- [ZenTerm](https://github.com/praxis-labs-io/zen-term) 0.1.0 or later.
+- [ZenTerm](https://github.com/praxis-labs-io/zen-term) 0.1.0 or later. The
+  crash-safe flag below needs a ZenTerm newer than 1.2.0.
 - Neovim 0.7+ (uses `vim.keymap`, `vim.api.nvim_create_autocmd`).
 
 ## Install
@@ -83,10 +87,10 @@ require("zen-navigator").setup({
 - **Ctrl-hjkl is claimed when you opt in.** Non-Neovim TUIs (htop, less) in a
   shell pane lose those keys to pane nav. That is the same tradeoff tmux and
   kitty make. ZenTerm's default `⌘-hjkl` never has this problem.
-- **Stale flag on a hard Neovim crash.** The nvim flag clears on
-  `VimLeave`/`VimSuspend`; a hard crash can leave it set, so `Ctrl-h` reaches the
-  recovered shell and does nothing until it is reset. ZenTerm's `⌘-hjkl` fallback
-  always works.
+- **The crash-safe flag needs a ZenTerm newer than 1.2.0.** On 1.2.0 and
+  earlier the flag only clears on `VimLeave`/`VimSuspend`, so a hard crash
+  leaves it set and `Ctrl-h` reaches the recovered shell and does nothing until
+  it is reset. ZenTerm's `⌘-hjkl` fallback always works either way.
 
 ## Protocol
 
