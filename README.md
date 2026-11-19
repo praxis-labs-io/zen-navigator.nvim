@@ -2,38 +2,21 @@
 
 `Ctrl-h/j/k/l` navigation that walks across **Neovim splits** and
 **[ZenTerm](https://github.com/praxis-labs-io/zen-term) panes** as one motion.
-The `vim-tmux-navigator` idea, without tmux, and backend-agnostic: it works on
-ZenTerm's default Ghostty backend with no process-probing.
+
+[Install](#install) · [Docs](https://github.com/praxis-labs-io/zen-term/blob/main/docs/nvim-navigator-protocol.md)
 
 Press `Ctrl-h` at the left edge of your Neovim splits and focus crosses into the
-ZenTerm pane on the left. From a shell pane, `Ctrl-h` walks back into Neovim and
-continues through its splits.
+ZenTerm pane on the left; from a shell pane, `Ctrl-h` walks back into Neovim.
+It is the `vim-tmux-navigator` idea without tmux, works on any ZenTerm backend,
+and is inert outside ZenTerm.
 
-## How it works
+## Install
 
-Both detection and hand-off ride ZenTerm's nav socket (`$ZEN_SOCK`), which
-ZenTerm injects into every pane along with a per-pane token (`$ZEN_PANE`):
-
-- On `VimEnter`/`VimResume` the plugin tells ZenTerm this pane is running Neovim
-  (and clears it on `VimLeave`/`VimSuspend`), so ZenTerm's key guard lets
-  `Ctrl-hjkl` reach Neovim instead of moving pane focus.
-- That claim is held on a single open connection. ZenTerm clears the pane's flag
-  when the connection closes, so a crash or a `kill -9` releases `Ctrl-hjkl` back
-  to pane nav the moment Neovim dies, with no autocmd needed.
-- When Neovim is at its edge split and can't move further, it asks ZenTerm to
-  move pane focus in that direction.
-
-Outside ZenTerm (`$ZEN_SOCK` and `$ZEN_PANE` unset) every mapping falls back to a
-plain `wincmd`, so the plugin is inert anywhere else and your config stays
-portable.
-
-## Requirements
+Requires:
 
 - [ZenTerm](https://github.com/praxis-labs-io/zen-term) 0.1.0 or later. The
   crash-safe flag below needs ZenTerm 1.3.0 or later.
 - Neovim 0.7+ (uses `vim.keymap`, `vim.api.nvim_create_autocmd`).
-
-## Install
 
 Both sides opt in, and both steps are required. This is not a default rebind:
 ZenTerm's own `⌘⌥←↓↑→` pane nav is untouched, and the plugin only diverts a chord
@@ -73,6 +56,24 @@ The `keybind = <action>=<chord>` shape matters, action first. ZenTerm ignores
 unknown config keys without complaining, so a line written the other way around
 does nothing and reports nothing.
 
+## How it works
+
+Both detection and hand-off ride ZenTerm's nav socket (`$ZEN_SOCK`), which
+ZenTerm injects into every pane along with a per-pane token (`$ZEN_PANE`):
+
+- On `VimEnter`/`VimResume` the plugin tells ZenTerm this pane is running Neovim
+  (and clears it on `VimLeave`/`VimSuspend`), so ZenTerm's key guard lets
+  `Ctrl-hjkl` reach Neovim instead of moving pane focus.
+- That claim is held on a single open connection. ZenTerm clears the pane's flag
+  when the connection closes, so a crash or a `kill -9` releases `Ctrl-hjkl` back
+  to pane nav the moment Neovim dies, with no autocmd needed.
+- When Neovim is at its edge split and can't move further, it asks ZenTerm to
+  move pane focus in that direction.
+
+Outside ZenTerm (`$ZEN_SOCK` and `$ZEN_PANE` unset) every mapping falls back to a
+plain `wincmd`, so the plugin is inert anywhere else and your config stays
+portable.
+
 ## Configuration
 
 ```lua
@@ -92,9 +93,20 @@ require("zen-navigator").setup({
   leaves it set and `Ctrl-h` reaches the recovered shell and does nothing until
   it is reset. ZenTerm's `⌘⌥←↓↑→` fallback always works either way.
 
-## Protocol
+## Documentation
 
 The socket contract is documented at
 [`docs/nvim-navigator-protocol.md`](https://github.com/praxis-labs-io/zen-term/blob/main/docs/nvim-navigator-protocol.md)
 in the ZenTerm repo. Both ends are written against it, and nothing in it
 depends on the terminal backend.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately through
+the repo's Security tab.
+
+## License
+
+[MIT](LICENSE).
+
+Part of the [Zen family](https://github.com/praxis-labs-io) from Praxis Labs.
